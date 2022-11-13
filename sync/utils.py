@@ -23,9 +23,13 @@ _logger = logging.getLogger(__name__)
 
 class GetWorkingDir:
     def __init__(self, working_dir=None):
-        self.use_temp_dir = working_dir is None
+        self.working_dir = working_dir
+        self.use_temp_dir = self.working_dir is None
         if self.use_temp_dir:
             self.working_dir = tempfile.mkdtemp()
+
+        os.makedirs(self.working_dir, exist_ok=True)
+
         _logger.debug(f'working dir {self.working_dir}')
 
     def __enter__(self):

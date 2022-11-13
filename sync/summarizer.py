@@ -9,8 +9,8 @@ import numpy as np
 from collections import defaultdict
 from typing import List, Tuple
 
-from .align_params import SummarizerParams
-from .utils import extract_audio, load_wav_data
+from sync.align_params import SummarizerParams
+from sync.utils import extract_audio, load_wav_data
 
 
 

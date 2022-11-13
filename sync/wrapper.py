@@ -2,10 +2,10 @@
 import logging
 from typing import Optional, List, Dict
 
-from .align_params import SummarizerParams
-from .align import align, build_result
-from .summarizer import FreqTransSummarizer
-from .utils import GetWorkingDir
+from sync.align_params import SummarizerParams
+from sync.align import align, build_result
+from sync.summarizer import FreqTransSummarizer
+from sync.utils import GetWorkingDir
 
 
 __all__ = [
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         'attention_mc.mp4',
         'attention_mb.mp4',
     ]
-    res = align_media_by_soundtrack(media)
+    res = align_media_by_soundtrack(media, working_dir='temp')
     print('res')
     for rr in res:
         print(rr)

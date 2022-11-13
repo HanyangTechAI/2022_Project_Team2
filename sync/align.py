@@ -4,8 +4,8 @@ import logging
 import numpy as np
 from typing import Dict, Tuple
 
-from .summarizer import summarize_media_files
-from .utils import validate_filenames, get_media_info
+from sync.summarizer import summarize_media_files
+from sync.utils import validate_filenames, get_media_info
 
 
 __all__ = [

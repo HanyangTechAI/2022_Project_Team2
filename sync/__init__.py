@@ -1,6 +1,6 @@
 
-from .wrapper import align_media_by_soundtrack
-from .align_params import SummarizerParams
+from sync.wrapper import align_media_by_soundtrack
+from sync.align_params import SummarizerParams
 
 
 __all__ = [
