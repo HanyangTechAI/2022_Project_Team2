@@ -1,5 +1,6 @@
 
 import logging
+import json
 from typing import Optional, List, Dict
 
 from sync.align_params import SummarizerParams
@@ -18,6 +19,7 @@ def align_media_by_soundtrack(
         media_files: List[str],
         working_dir: str = None,
         ray_threshold=2,
+        output_json=None,
         **kwargs,
 ) -> List[Dict]:
     """
@@ -28,6 +30,8 @@ def align_media_by_soundtrack(
     directory to store temporary files (if not set, tempfile.mkdtemp is used)
     :param ray_threshold
     minimum number of files for distributed processing
+    :param output_json
+    json output path (if set, save result in json format)
     :param kwargs:
     summarizer param
     :return:
@@ -39,8 +43,12 @@ def align_media_by_soundtrack(
         summarizer = FreqTransSummarizer(_dir, params)
         freq_dicts = summarize_media_files(media_files, summarizer, ray_threshold=ray_threshold)
 
-        align_result = align(media_files, freq_dicts)
+        align_result = align(media_files, freq_dicts, summarizer)
         result = build_result(media_files, align_result)
+
+    if output_json:
+        with open(output_json, 'w') as f:
+            json.dump(result, f, indent=4)
 
     return result
 
@@ -59,7 +67,12 @@ if __name__ == '__main__':
         targets = sys.argv[1:]
     else:
         targets = media
-    res = align_media_by_soundtrack(targets, working_dir='temp')
+    res = align_media_by_soundtrack(
+        targets,
+        working_dir='temp',
+        output_json='out.json',
+        ray_threshold=4,
+    )
     print('res')
     for rr in res:
         print(rr)
