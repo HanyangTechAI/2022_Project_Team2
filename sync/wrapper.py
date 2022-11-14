@@ -4,7 +4,7 @@ from typing import Optional, List, Dict
 
 from sync.align_params import SummarizerParams
 from sync.align import align, build_result
-from sync.summarizer import FreqTransSummarizer
+from sync.summarizer import FreqTransSummarizer, summarize_media_files
 from sync.utils import GetWorkingDir
 
 
@@ -17,6 +17,7 @@ _logger = logging.getLogger(__name__)
 def align_media_by_soundtrack(
         media_files: List[str],
         working_dir: str = None,
+        ray_threshold=2,
         **kwargs,
 ) -> List[Dict]:
     """
@@ -25,6 +26,8 @@ def align_media_by_soundtrack(
     list of media files
     :param working_dir:
     directory to store temporary files (if not set, tempfile.mkdtemp is used)
+    :param ray_threshold
+    minimum number of files for distributed processing
     :param kwargs:
     summarizer param
     :return:
@@ -34,8 +37,9 @@ def align_media_by_soundtrack(
 
     with GetWorkingDir(working_dir) as _dir:
         summarizer = FreqTransSummarizer(_dir, params)
+        freq_dicts = summarize_media_files(media_files, summarizer, ray_threshold=ray_threshold)
 
-        align_result = align(media_files, summarizer)
+        align_result = align(media_files, freq_dicts)
         result = build_result(media_files, align_result)
 
     return result

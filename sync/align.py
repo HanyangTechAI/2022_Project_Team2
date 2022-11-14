@@ -19,13 +19,12 @@ __all__ = [
 _logger = logging.getLogger(__name__)
 
 
-def align(files, summarizer):
+def align(files, freq_dicts):
     """
     Find time delays between video files
     """
     st_time = time.time()
 
-    freq_dicts = summarize_media_files(files, summarizer)
     _result1: Dict[Tuple, float] = dict()
     _result2: Dict[Tuple, float] = dict()
 
