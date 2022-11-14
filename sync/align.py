@@ -1,4 +1,7 @@
 
+# This module is based on align-videos-by-sound, see
+# https://github.com/align-videos-by-sound/align-videos-by-sound
+
 # This script based on alignment_by_row_channels.py by Allison Deal, see
 # https://github.com/allisonnicoledeal/VideoSync/blob/master/alignment_by_row_channels.py
 

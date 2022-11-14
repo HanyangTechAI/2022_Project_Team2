@@ -1,4 +1,7 @@
 
+# This module is based on align-videos-by-sound, see
+# https://github.com/align-videos-by-sound/align-videos-by-sound
+
 import shutil
 import time
 import tempfile
@@ -17,6 +20,7 @@ __all__ = [
     'validate_filenames',
     'load_wav_data',
     'get_media_info',
+    'trim_video',
 ]
 _logger = logging.getLogger(__name__)
 
@@ -240,6 +244,51 @@ def get_media_info(filename):
     result["streams_summary"] = _summarize_streams(result["streams"])
     return result
 
+
+def _trim_single_video(video, output_path, start_offset, duration):
+    cmd = [
+        'ffmpeg',
+        '-y',
+        '-i', video,
+        '-t', f'{duration:.3f}'
+    ]
+    if start_offset > 0:
+        cmd.extend(['-ss', _duration_to_hhmmss(start_offset)])
+
+    cmd.append(output_path)
+    _logger.debug(f'trim video: {" ".join(cmd)}')
+    subprocess.check_call(cmd)
+
+
+def trim_video(video_files, align_info, output_dir, overwrite_ok=True):
+    n_files = len(video_files)
+    if n_files == 0:
+        return
+
+    targets = []
+    durations = []
+    for i in range(n_files):
+        video_file = video_files[i]
+        video_info = align_info[i]
+        os.path.getatime(video_file)
+
+        video_basename = os.path.basename(video_file)
+
+        assert video_basename == os.path.basename(video_info['file']), \
+            "the files and align info seem to be out of order"
+
+        video_output = os.path.join(output_dir, video_basename)
+        if not overwrite_ok and os.path.exists(video_output):
+            raise FileExistsError(f'{video_output} seem to be exists already')
+
+        targets.append((video_file, video_output, video_info['trim']))
+        durations.append(video_info['orig_duration'] - video_info['trim'])
+
+    os.makedirs(output_dir, exist_ok=True)
+    min_duration = min(durations)
+
+    for orig_video, out, trim in targets:
+        _trim_single_video(orig_video, out, trim, min_duration)
 
 
 if __name__ == '__main__':

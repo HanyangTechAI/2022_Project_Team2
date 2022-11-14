@@ -6,7 +6,7 @@ from typing import Optional, List, Dict
 from sync.align_params import SummarizerParams
 from sync.align import align, build_result
 from sync.summarizer import FreqTransSummarizer, summarize_media_files
-from sync.utils import GetWorkingDir
+from sync.utils import GetWorkingDir, trim_video
 
 
 __all__ = [
@@ -76,4 +76,6 @@ if __name__ == '__main__':
     print('res')
     for rr in res:
         print(rr)
+
+    trim_video(targets, res, 'trimmed')
 

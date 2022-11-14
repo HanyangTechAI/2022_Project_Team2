@@ -1,4 +1,7 @@
 
+# This module is based on align-videos-by-sound, see
+# https://github.com/align-videos-by-sound/align-videos-by-sound
+
 """
 This module contains only class for parameters of the detector class
 for knowing the offset difference for audio and video files,
