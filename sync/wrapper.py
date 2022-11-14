@@ -43,6 +43,7 @@ def align_media_by_soundtrack(
 
 if __name__ == '__main__':
     import logging
+    import sys
 
     logging.basicConfig(level=logging.DEBUG)
 
@@ -50,7 +51,11 @@ if __name__ == '__main__':
         'attention_mc.mp4',
         'attention_mb.mp4',
     ]
-    res = align_media_by_soundtrack(media, working_dir='temp')
+    if len(sys.argv) >= 2:
+        targets = sys.argv[1:]
+    else:
+        targets = media
+    res = align_media_by_soundtrack(targets, working_dir='temp')
     print('res')
     for rr in res:
         print(rr)

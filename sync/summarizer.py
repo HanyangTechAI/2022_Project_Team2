@@ -1,4 +1,7 @@
 
+# This script based on alignment_by_row_channels.py by Allison Deal, see
+# https://github.com/allisonnicoledeal/VideoSync/blob/master/alignment_by_row_channels.py
+
 import os
 import ray
 import time
@@ -147,7 +150,9 @@ def _summarize_media_ray(
         media_files,
         summarizer: FreqTransSummarizer
 ):
-    ray.init()
+    # if not ray.is_initialized():
+    #     ray.init()
+
     _logger.debug(f'summarizing {len(media_files)} files with ray distribution')
     st_time = time.time()
 
@@ -157,7 +162,6 @@ def _summarize_media_ray(
 
     ed_time = time.time()
     _logger.debug(f'time cost {ed_time-st_time:.3f}s')
-    ray.shutdown()
     return results
 
 
@@ -178,7 +182,7 @@ def _summarize_media(
 def summarize_media_files(
         media_files,
         summarizer: FreqTransSummarizer,
-        ray_threshold=4
+        ray_threshold=1
 ):
     _logger.debug(f'start summarizing {len(media_files)} files')
     st_time = time.time()
