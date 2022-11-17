@@ -134,6 +134,7 @@ class SimilarImageFinder:
 
             for selected_video_nums in list(combinations(video_num_list, 2)):
                 videonum1, videonum2 = selected_video_nums[0], selected_video_nums[1]
+
                 landmarks = list(
                     df_temp.loc[(df_temp['video_num'] == videonum1) | (df_temp['video_num'] == videonum2)]['landmarks'])
                 dis = findEuclideanDistance(landmarks[0], landmarks[1], detect_person_num)
