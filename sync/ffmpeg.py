@@ -91,7 +91,7 @@ def encode_video_single(
 
     cmd_str = ' '.join(cmd)
     _logger.info(f'encode {video} to {output_path}')
-    _logger.debug(f'cmd {cmd_str}')
+    # _logger.debug(f'cmd {cmd_str}')
     if silent:
         subprocess.check_call(cmd_str, stderr=subprocess.DEVNULL)
     else:
