@@ -56,7 +56,7 @@ def align(files, freq_dicts, summarizer):
 
 
     ed_time = time.time()
-    _logger.info(f'total aligning time cost: {ed_time-st_time:.3f}s')
+    _logger.debug(f'total aligning time cost: {ed_time-st_time:.3f}s')
 
     return pad_pre, trim_pre
 
