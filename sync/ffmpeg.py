@@ -2,6 +2,7 @@
 import os
 import logging
 import subprocess
+import shutil
 
 from typing import Optional, Tuple, Dict, Any, List, Union
 
@@ -16,18 +17,14 @@ __all__ = [
 
 def _build_filename(
         basename,
-        video_only=False,
         start_offset=None,
         duration=None,
         fps=None,
         resolution=None,
-        **kwargs
 ):
     base_wo_ext, extension = os.path.splitext(basename)
 
     features = []
-    if video_only:
-        features.append(f'v')
     if start_offset:
         features.append(f'ss{start_offset:.2f}')
     if duration:
@@ -38,18 +35,18 @@ def _build_filename(
         features.append(f'{resolution[0]}x{resolution[1]}')
 
     if features:
-        ret = f'{base_wo_ext}_[{"_".join(features)}]{extension}'
+        ret = f'{base_wo_ext}_[{"_".join(features)}]'
     else:
-        ret = f'{base_wo_ext}{extension}'
-    return ret
+        ret = f'{base_wo_ext}'
+    return ret, extension
 
 
 
 def encode_video_single(
         video,
-        output_path,
+        output_dir,
         overwrite: bool = False,
-        video_only: bool = True,
+        save_frames: bool = True,
         start_offset: Optional[float] = None,
         duration: Optional[float] = None,
         fps: Optional[float] = None,
@@ -62,18 +59,30 @@ def encode_video_single(
     :return: output path
     """
 
-    if not overwrite and os.path.exists(output_path):
-        _logger.info(f'encode {video} - output {output_path} already exists')
-        return output_path
+    output_basename, extension = _build_filename(
+        os.path.basename(video),
+        start_offset=start_offset,
+        duration=duration,
+        fps=fps,
+        resolution=resolution
+    )
+    if save_frames:
+        output_path = os.path.join(output_dir, output_basename)
+    else:
+        output_path = os.path.join(output_dir, output_basename + extension)
+
+    if not overwrite:
+        if os.path.exists(output_path):
+            _logger.info(f'encode {video} - output {output_path} already exists')
+            return output_path
 
     cmd = [
         'ffmpeg',
         '-hide_banner',
         '-y',
         '-i', video,
+        '-map', '0:v',
     ]
-    if video_only:
-        cmd.extend(['-map', '0:v'])
     if start_offset and start_offset > 0:
         cmd.extend(['-ss', f'{start_offset:.3f}'])
     if duration:
@@ -87,10 +96,17 @@ def encode_video_single(
     if filters:
         cmd.extend(['-filter:v', f'\"{", ".join(filters)}\"'])
 
-    cmd.append(output_path)
+    if save_frames:
+        cmd.extend(['-q:v', '4'])
+        output_file = os.path.join(output_path, '%04d.jpeg')
+        # output_file = os.path.join(output_path, '%04d.png')
+        os.makedirs(output_path, exist_ok=True)
+    else:
+        output_file = output_path
+    cmd.append(output_file)
 
     cmd_str = ' '.join(cmd)
-    _logger.info(f'encode {video} to {output_path}')
+    _logger.info(f'encode {video} to {output_file}')
     # _logger.debug(f'cmd {cmd_str}')
     if silent:
         subprocess.check_call(cmd_str, stderr=subprocess.DEVNULL)
@@ -103,7 +119,7 @@ def encode_videos(
         video_files,
         output_dir,
         overwrite: bool = False,
-        video_only: bool = True,
+        save_frames: bool = True,
         align_info: Optional[List[Dict[str, Any]]] = None,
         fps: Optional[float] = None,
         resolution: Optional[Tuple[int, int]] = None,
@@ -121,7 +137,7 @@ def encode_videos(
 
     base_kwargs = dict(
         overwrite=overwrite,
-        video_only=video_only,
+        save_frames=save_frames,
         fps=fps,
         resolution=resolution,
         silent=silent,
@@ -161,35 +177,8 @@ def encode_videos(
     for i, (video_file, f_kwarg) in enumerate(file_kwargs):
         _logger.info(f'({i+1}/{n_files}) encode')
 
-        video_output = os.path.join(
-            output_dir,
-            _build_filename(
-                os.path.basename(video_file),
-                **f_kwarg,
-                **base_kwargs
-            )
-        )
-        outputs.append(encode_video_single(video_file, video_output, **f_kwarg, **base_kwargs))
+        outputs.append(encode_video_single(video_file, output_dir, **f_kwarg, **base_kwargs))
 
     return outputs
 
 
-if __name__ == '__main__':
-    import sys
-
-    if len(sys.argv) >= 2:
-        target = sys.argv[1]
-        if len(sys.argv) >= 3:
-            out = sys.argv[2]
-        else:
-            out = 'out.mp4'
-
-        encode_video_single(
-            target,
-            out,
-            video_only=True,
-            start_offset=3.,
-            duration=190,
-            # fps=2,
-            resolution=(800, 450),
-        )
