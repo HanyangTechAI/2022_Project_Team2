@@ -248,6 +248,7 @@ def get_media_info(filename):
 def _trim_single_video(video, output_path, start_offset, duration):
     cmd = [
         'ffmpeg',
+        '-hide_banner',
         '-y',
         '-i', video,
         '-t', f'{duration:.3f}'
