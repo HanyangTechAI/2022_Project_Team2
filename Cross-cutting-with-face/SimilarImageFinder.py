@@ -1,13 +1,11 @@
 from yoloface.face_detector import YoloDetector
 from PIL import Image
 import numpy as np
-import glob
 import pandas as pd
 from util.distance import findEuclideanDistance
 from itertools import combinations
 from util.VideoCapture import VideoCapture
-import cv2
-import matplotlib.pyplot as plt
+from util.functions import get_all_images, plot_by_cv2
 
 
 class SimilarImageFinder:
@@ -16,47 +14,36 @@ class SimilarImageFinder:
             # 영상 -> 이미지
             VideoCapture(period, video_name, video_path)
             # 같은 프레임의 이미지들 중에서 적어도 2번 이상 사람이 감지된 프레임만 추출해서 data frame 생성
-            df = self.make_df_detection_by_detector(detector, video_name)
+            df = self._make_df_detection_by_detector(detector, video_name)
         else:
             df = pd.read_parquet(f'./dataset/{video_name}/detection_data/yoloface_data.parquet')
         # 유사한 이미지 탐색
         similarity_list = self.find_similarity_images(df)
         # 이미지 출력
-        self.plot_by_cv2(similarity_list, video_name)
+        plot_by_cv2(similarity_list, video_name)
 
-    def get_all_images(self, video_name):
-        """
-        dataset 폴더 안에 있는 모든 이미지 경로를 반환하는 함수입니다.
-        """
-        images = []
-        frames = glob.glob(f'./dataset/{video_name}/frame/*')
-        for frame in frames:
-            for image in glob.glob(frame + '/*.jpg'):
-                images.append(image.replace('\\', '/'))
-        return images
-
-    def sort_by_x1(self, boxes):
+    def _sort_by_x1(self, boxes):
         """
         감지한 boundary box list 를 x1이 작은 순서대로 (왼쪽부터) 정렬하는 함수입니다.
         """
         boxes = sorted(boxes, key=lambda x: x[0][0])
         return boxes
 
-    def zip_person(self, boxes, points):
+    def _zip_person(self, boxes, points):
         """
         box 와 landmark 의 리스트를 각 사람의 box 와 landmark 로 합치는 함수입니다.
         """
         person = zip(boxes[0], points[0])
         return list(person)
 
-    def make_df_detection_by_detector(self, detector, video_name):
+    def _make_df_detection_by_detector(self, detector, video_name):
         """
         Face Detection 데이터 프레임을 만드는 함수입니다.
         :param: detector ['opencv', 'ssd', 'mtcnn', 'retinaface', 'yoloface]
         :return:
         """
         df_detection = pd.DataFrame(columns=['frame_num', 'video_num', 'detect_person_num', 'boxes', 'landmarks'])
-        images = self.get_all_images(video_name)
+        images = get_all_images(video_name) # 모든 이미지 경로를 가져옵니다.
         if detector == 'yoloface':
             try:
                 yolo_detector = YoloDetector(target_size=720, gpu=1, min_face=90)
@@ -74,7 +61,7 @@ class SimilarImageFinder:
                 # get boundary box and landmarks
                 boxes, points = yolo_detector.predict(image)
                 # 감지된 사람 중 왼쪽에 있는 사람 순(x1이 작은 순)으로 정렬
-                people = self.sort_by_x1(self.zip_person(boxes, points))
+                people = self._sort_by_x1(self._zip_person(boxes, points))
                 # 1명 이상인 경우 / 1명만 검출하고 싶으면 == 1 로 변경
                 if len(people) > 0:
                     data = {
@@ -91,13 +78,13 @@ class SimilarImageFinder:
         # frame_num 순으로 정렬
         df_detection = df_detection.sort_values(by='frame_num')
         # filter 된 dataframe
-        df_filtered = self.filter_df(df_detection)
+        df_filtered = self._filter_df(df_detection)
         # 데이터프레임 저장
         df_filtered.to_parquet(f'./dataset/{video_name}/detection_data/yoloface_data.parquet')
 
         return df_filtered
 
-    def filter_df(self, df):
+    def _filter_df(self, df):
         """
         얼굴을 감지한 데이터프레임에서 감지된 사람 수가 같은 데이터만 추출하여 데이터프레임을 만듭니다.
         """
@@ -142,46 +129,6 @@ class SimilarImageFinder:
             similarity_list.append((frame, selected_video, dis_min))
         similarity_list = sorted(similarity_list, key=lambda x: x[2])
         return similarity_list
-
-    def plot_by_matplotlib(self, similarity_list, video_name, plot_limit=20):
-        n = 0
-        for frame, selected_video, _ in similarity_list:
-            fig = plt.figure()
-            # plot_limit 까지 plot
-            if n > plot_limit: break
-            xlabels = ['selected_image1', 'selected_image2']
-            i = 1
-            selected_video_num1 = selected_video[0]
-            selected_video_num2 = selected_video[1]
-
-            ax = fig.add_subplot(1, 2, i)
-            ax.imshow(Image.open(f'./dataset/{video_name}/frame/{frame}/{selected_video_num1}.jpg'))
-            ax.set_xlabel(xlabels[0])
-            ax.set_xticks([]), ax.set_yticks([])
-
-            ax = fig.add_subplot(1, 2, i + 1)
-            ax.imshow(Image.open(f'./dataset/{video_name}/frame/{frame}/{selected_video_num2}.jpg'))
-            ax.set_xlabel(xlabels[1])
-            ax.set_xticks([]), ax.set_yticks([])
-            n += 1
-            fig.show()
-
-    def plot_by_cv2(self, similarity_list, video_name, plot_limit=20):
-        n = 0
-        i = 1
-        for frame, selected_video, _ in similarity_list:
-            if n > plot_limit : break
-            img1 = np.array(Image.open(f'./dataset/{video_name}/frame/{frame}/{selected_video[0]}.jpg').resize((480, 270)))
-            img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
-            img2 = np.array(Image.open(f'./dataset/{video_name}/frame/{frame}/{selected_video[1]}.jpg').resize((480, 270)))
-            img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-
-            combine_imgs = np.concatenate((img1, img2), axis=0)
-            cv2.imshow(f'{i}번째로 제일 유사한 Frame', combine_imgs)
-            cv2.waitKey()
-            i += 1
-            n += 1
-        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
