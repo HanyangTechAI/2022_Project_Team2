@@ -7,8 +7,6 @@ from util.distance import findEuclideanDistance
 from itertools import combinations
 from util.VideoCapture import VideoCapture
 import cv2
-import matplotlib
-# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
