@@ -1,32 +1,7 @@
-import glob
 import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
-
-
-def get_all_images(video_name):
-    """
-    dataset 폴더 안에 있는 모든 이미지 경로를 반환하는 함수입니다.
-    """
-    images = []
-    frames = glob.glob(f'./dataset/{video_name}/frame/*')
-    for frame in frames:
-        for image in glob.glob(frame + '/*.jpg'):
-            images.append(image.replace('\\', '/'))
-    return images
-
-def get_max_area(boxes):
-    area_list = []  # 2개의 영상에서 각각 제일 큰 크기의 face area 를 담을 리스트
-    for people in boxes:
-        max_area = 0
-        for person in people:
-            x1, y1, x2, y2 = person[0], person[1], person[2], person[3]
-            area = (x2-x1)*(y2-y1)
-            if max_area < area: max_area = area
-        area_list.append(max_area)
-    return area_list
-
 
 def plot_by_matplotlib(similarity_list, video_name, plot_limit=20):
     n = 0

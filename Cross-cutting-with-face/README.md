@@ -9,16 +9,22 @@ SimilarImageFinder 는 [yolofaceV5 repo](https://github.com/elyha7/yoloface), [y
 
 1. 우선, 버전 충돌을 피하기 위해 새로운 가상환경을 만드는 것을 추천합니다.
 
-```python
+```bash
 codna activate create -n cross-cutting python=3.8
 ```
 
-1. requirements.txt 다운
+2. requirements.txt 다운
 
-```python
+```bash
 pip install -r requirements.txt
 ```
-
+3. yoloface github 다운 및 설정
+```bash
+cd Cross-cutting-with-face
+git submodule update --init --recursive
+conda develop yoloface
+```
+4. yoloface 폴더 안에 __init__.py 파일 추가
 ## Usage example
 
 ### Youtube Video download
