@@ -3,6 +3,9 @@ from tensorflow.keras.layers import Convolution2D, ZeroPadding2D, MaxPooling2D, 
 import os
 import gdown
 
+"""
+refer to : https://github.com/serengil/deepface/blob/13a21fe306ee39567f7f0b15422f8a3c1ce656de/deepface/DeepFace.py#L721
+"""
 
 def baseModel():
 	model = Sequential()

@@ -2,6 +2,9 @@ import tensorflow as tf
 import numpy as np
 import cv2
 
+"""
+refer to : https://github.com/serengil/deepface/blob/13a21fe306ee39567f7f0b15422f8a3c1ce656de/deepface/DeepFace.py#L721
+"""
 
 def preprocess_face(img, target_size=(224, 224), grayscale=False):
     # img might be path, base64 or numpy array. Convert it to numpy whatever it is.
