@@ -9,4 +9,5 @@ test_image.jpg
 Deepface_Detector_test.ipynb
 Face_detection_with_Yoloface.ipynb
 Face_detection_with_yoloface_ver2.ipynb
-
+Face_detection_with_face_recognition.ipynb
+verifier/vgg_face_weights.h5
