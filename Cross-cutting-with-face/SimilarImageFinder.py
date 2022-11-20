@@ -36,7 +36,7 @@ class SimilarImageFinder:
                 df_detection = detect_images_by_gpu(yolo_detector, video_name, batch_size=16)
             except:
                 yolo_detector = face_detector.YoloDetector(target_size=720, gpu=-1, min_face=90)
-                print('cpu 사용')
+                print('cpu 사용, 시간이 오래걸리기 때문에 gpu를 이용하는 것을 권장합니다.')
                 df_detection = detect_images_by_cpu(yolo_detector, video_name)
         else:
             print('아직 미구현, Deepface Detector 는 얼굴을 추출하기 때문에 customizing 필요합니다')
@@ -71,19 +71,21 @@ class SimilarImageFinder:
 
                 # 2개의 이미지에서 가장 큰 얼굴 간의 비율, face verification 을 위한 crop face image
                 area_fraction, crop_face1, crop_face2 = get_max_area_fraction_and_crop_faces(boxes, imgs_path)
-                verified = FaceVerifier.verify(crop_face1, crop_face2, model)['verified']
 
+                # #Verified Test : 검증 확인
+                # verified = FaceVerifier.verify(crop_face1, crop_face2, model)['verified']
                 # #check not verified face
                 # if not verified: plot_crop_face(crop_face1, crop_face2)
-
                 # # check verified face
                 # if verified: plot_crop_face(crop_face1, crop_face2)
 
                 # compare area_fraction and face recognition
-                if 0.8 < area_fraction < 1.2 and verified:
+                if 0.8 < area_fraction < 1.2 and FaceVerifier.verify(crop_face1, crop_face2, model)['verified']:
                     landmarks = list(
                         df_temp.loc[(df_temp['video_num'] == videonum1) | (df_temp['video_num'] == videonum2)]['landmarks'])
+
                     dis = findEuclideanDistance(landmarks[0], landmarks[1], detect_person_num)
+
                     if dis < dis_min:
                         dis_min = dis
                         selected_video = selected_video_nums
@@ -99,5 +101,5 @@ class SimilarImageFinder:
 if __name__ == '__main__':
     video_path = 'C:/Users/JungSupLim/Desktop/video'
     # video capture 생략하고 싶으면 False
-    SimilarImageFinder('yoloface', 'idle_tomboy2', video_path, period=15, video_capture=False)
+    SimilarImageFinder('yoloface', 'idle_tomboy3', video_path, period=30, video_capture=True)
 
