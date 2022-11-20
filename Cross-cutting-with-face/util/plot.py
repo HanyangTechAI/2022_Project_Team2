@@ -31,7 +31,7 @@ def plot_by_cv2(similarity_list, video_name, plot_limit=20):
     n = 0
     i = 1
     for frame, selected_video, _ in similarity_list:
-        if n > plot_limit : break
+        if n > plot_limit: break
         img1 = np.array(Image.open(f'./dataset/{video_name}/frame/{frame}/{selected_video[0]}.jpg').resize((480, 270)))
         img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
         img2 = np.array(Image.open(f'./dataset/{video_name}/frame/{frame}/{selected_video[1]}.jpg').resize((480, 270)))
