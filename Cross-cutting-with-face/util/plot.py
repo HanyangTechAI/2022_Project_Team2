@@ -43,3 +43,11 @@ def plot_by_cv2(similarity_list, video_name, plot_limit=20):
         i += 1
         n += 1
     cv2.destroyAllWindows()
+
+def plot_crop_face(img1, img2):
+    img1 = cv2.cvtColor(np.array(img1.resize((200,200))), cv2.COLOR_BGR2RGB)
+    img2 = cv2.cvtColor(np.array(img2.resize((200,200))), cv2.COLOR_BGR2RGB)
+
+    combine_img = np.concatenate((img1, img2), axis=0)
+    cv2.imshow(f'not same', combine_img)
+    cv2.waitKey()

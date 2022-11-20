@@ -51,7 +51,7 @@ def get_max_area_fraction_and_crop_faces(boxes, imgs_path):
         area_list.append(max_area)
         crop_face_list.append(max_face)
     # Face crop 이미지로 저장
-    crop_face_list = [np.array(Image.open(imgs_path[i]).crop((face[0], face[1], face[2], face[3])))
+    crop_face_list = [Image.open(imgs_path[i]).crop((face[0], face[1], face[2], face[3]))
                       for i, face in enumerate(crop_face_list)]
 
     # img1 = cv2.cvtColor(crop_face_list[0], cv2.COLOR_BGR2RGB)

@@ -2,7 +2,7 @@ from yoloface import face_detector
 from util.distance import findEuclideanDistance
 from itertools import combinations
 from util.VideoCapture import VideoCapture
-from util.plot import plot_by_cv2
+from util.plot import plot_by_cv2, plot_crop_face
 import torch
 from similarImageFinder_functions import *
 from verifier import FaceVerifier, VGGFace
@@ -31,9 +31,9 @@ class SimilarImageFinder:
         if detector == 'yoloface':
             try:
                 torch.tensor(1).cuda()
-                yolo_detector = face_detector.YoloDetector(target_size=720, gpu=1, min_face=90)
+                yolo_detector = face_detector.YoloDetector(target_size=720, gpu=0, min_face=90)
                 print('gpu 사용')
-                df_detection = detect_images_by_gpu(yolo_detector, video_name, batch_size=32)
+                df_detection = detect_images_by_gpu(yolo_detector, video_name, batch_size=16)
             except:
                 yolo_detector = face_detector.YoloDetector(target_size=720, gpu=-1, min_face=90)
                 print('cpu 사용')
@@ -68,27 +68,36 @@ class SimilarImageFinder:
                 boxes = list(df_temp.loc[(df_temp['video_num'] == videonum1) | (df_temp['video_num'] == videonum2)]['boxes'])
                 imgs_path = [f'./dataset/{self.video_name}/frame/{frame}/{videonum1}.jpg',
                              f'./dataset/{self.video_name}/frame/{frame}/{videonum2}.jpg']
+
                 # 2개의 이미지에서 가장 큰 얼굴 간의 비율, face verification 을 위한 crop face image
                 area_fraction, crop_face1, crop_face2 = get_max_area_fraction_and_crop_faces(boxes, imgs_path)
                 verified = FaceVerifier.verify(crop_face1, crop_face2, model)['verified']
-                print(verified)
+
+                # #check not verified face
+                # if not verified: plot_crop_face(crop_face1, crop_face2)
+
+                # # check verified face
+                # if verified: plot_crop_face(crop_face1, crop_face2)
+
                 # compare area_fraction and face recognition
                 if 0.8 < area_fraction < 1.2 and verified:
                     landmarks = list(
                         df_temp.loc[(df_temp['video_num'] == videonum1) | (df_temp['video_num'] == videonum2)]['landmarks'])
                     dis = findEuclideanDistance(landmarks[0], landmarks[1], detect_person_num)
-                    print(dis)
                     if dis < dis_min:
                         dis_min = dis
                         selected_video = selected_video_nums
+
             if selected_video is not None:
                 similarity_list.append((frame, selected_video, dis_min))
+
         similarity_list = sorted(similarity_list, key=lambda x: x[2])
+
         return similarity_list
 
 
 if __name__ == '__main__':
     video_path = 'C:/Users/JungSupLim/Desktop/video'
     # video capture 생략하고 싶으면 False
-    SimilarImageFinder('yoloface', 'idle_tomboy', video_path, period=30, video_capture=False)
+    SimilarImageFinder('yoloface', 'idle_tomboy2', video_path, period=15, video_capture=False)
 
