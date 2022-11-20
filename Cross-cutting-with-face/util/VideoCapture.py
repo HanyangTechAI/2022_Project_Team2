@@ -10,18 +10,17 @@ class VideoCapture:
             os.mkdir('./dataset')
         if not os.path.isdir(f"./dataset/{video_name}"):
             os.mkdir(f"./dataset/{video_name}")
-        # if not os.path.isdir(f"./dataset/{video_name}/origin_video"):
-        #     os.mkdir(f"./dataset/{video_name}/origin_video")
         if not os.path.isdir(f"./dataset/{video_name}/frame"):
             os.mkdir(f"./dataset/{video_name}/frame")
         if not os.path.isdir(f"./dataset/{video_name}/detection_data"):
             os.mkdir(f"./dataset/{video_name}/detection_data")
+        # 경로 설정
         self.video_path = video_path
         self.frame_path = f"./dataset/{video_name}/frame"
         self.period = period
         self.video_name = video_name
         self.video_list = self._get_mp4_files(path=self.video_path)
-        #
+
         self.video_to_image()
 
     # 여러개 영상 -> 이미지 생성
@@ -48,21 +47,23 @@ class VideoCapture:
         :param video_num: 영상 순서
         :param period: 영상 30 fps 기준 period = 60 : 2초 간격으로 이미지 추출
         """
-        cnt = 0
         while video.isOpened():
             ret, image = video.read()
+
+            if not ret: # 영상재생 완료 시 탈출
+                print("[Frame Captured] %d Image 생성 완료" % (video.get(1) / period))
+                break
+
             if int(video.get(1)) % period == 0:
                 # 초기 폴더 생성
                 if not os.path.isdir(os.path.join(self.frame_path, f'{int(video.get(1)/period)}')):
                     os.mkdir(os.path.join(self.frame_path, f'{int(video.get(1)/period)}'))
                 # image 저장
                 cv2.imwrite(os.path.join(f'./dataset/{video_name}/frame/{int(video.get(1)/period)}/{video_num}.jpg'), image)
-            cnt += 1
-            if cnt > int(video.get(1)):
-                print("[Frame Captured] %d Image 생성 완료" % (video.get(1) / period))
-                break
+        
         video.release()
 
 
 if __name__ == '__main__':
-    VideoCapture(video_name='iu_lilac', period=90, video_path='/Users/jungsuplim/Desktop/origin_video')
+    video_path = 'C:/Users/JungSupLim/Desktop/video'
+    VideoCapture(video_name='idle_tomboy2', period=90, video_path=video_path)
