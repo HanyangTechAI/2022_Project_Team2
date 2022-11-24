@@ -28,7 +28,7 @@ def process_videos(
             output_dir,
             align_info=align_result,
             fps=fps,
-            resolution=resolution
+            resolution=resolution,
         )
 
     return outputs
@@ -53,8 +53,14 @@ def main():
     parser.add_argument(
         'output_dir',
         nargs='?',
-        default='extracted',
+        default='./extracted',
         help='output directory',
+    )
+    parser.add_argument(
+        '--fps',
+        help='target_fps',
+        type=int,
+        default=10,
     )
     parser.add_argument(
         '--working_dir',
@@ -79,7 +85,7 @@ def main():
         target_files,
         args.output_dir,
         args.working_dir,
-        fps=10,
+        fps=args.fps,
         resolution=(960, 540)
     )
 

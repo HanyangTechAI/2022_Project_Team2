@@ -2,7 +2,6 @@
 import os
 import logging
 import subprocess
-import shutil
 
 from typing import Optional, Tuple, Dict, Any, List, Union
 
@@ -103,13 +102,15 @@ def encode_video_single(
         os.makedirs(output_path, exist_ok=True)
     else:
         output_file = output_path
+        os.makedirs(output_dir, exist_ok=True)
+
     cmd.append(output_file)
 
     cmd_str = ' '.join(cmd)
     _logger.info(f'encode {video} to {output_file}')
     # _logger.debug(f'cmd {cmd_str}')
     if silent:
-        subprocess.check_call(cmd_str, stderr=subprocess.DEVNULL)
+        subprocess.check_call(cmd_str, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         subprocess.check_call(cmd_str)
     return output_path
