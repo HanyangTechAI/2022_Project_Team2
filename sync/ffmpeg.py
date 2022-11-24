@@ -34,7 +34,7 @@ def _build_filename(
         features.append(f'{resolution[0]}x{resolution[1]}')
 
     if features:
-        ret = f'{base_wo_ext}_({"_".join(features)})'
+        ret = f'{base_wo_ext}_{"_".join(features)}'
     else:
         ret = f'{base_wo_ext}'
     return ret, extension
