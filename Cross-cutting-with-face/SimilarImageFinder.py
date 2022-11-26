@@ -1,7 +1,6 @@
 from yoloface import face_detector
 from util.distance import findEuclideanDistance
 from itertools import combinations
-from util.VideoCapture import VideoCapture
 from util.plot import plot_by_cv2, plot_crop_face
 import torch
 from similarImageFinder_functions import *
@@ -28,7 +27,7 @@ class SimilarImageFinder:
     def _make_df_detection_by_detector(self, detector, dataset_path):
         """
         Face Detection 데이터 프레임을 만드는 함수입니다.
-        :param: detector ['opencv', 'ssd', 'mtcnn', 'retinaface', 'yoloface]
+        :param: detector 'yoloface'
         :return:
         """
         if detector == 'yoloface':
@@ -111,8 +110,8 @@ class SimilarImageFinder:
 
 
 if __name__ == '__main__':
-    video_path = './dataset/tomboy'
+    dataset_path = './dataset/tomboy'
     # video capture 생략하고 싶으면 False
     # SimilarImageFinder('yoloface', 'idle_tomboy3', video_path, period=30, video_capture=True)
-    SimilarImageFinder('yoloface', video_path, detection=False)
+    SimilarImageFinder('yoloface', dataset_path, detection=False)
 
