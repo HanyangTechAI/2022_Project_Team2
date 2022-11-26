@@ -2,17 +2,11 @@ import glob
 import numpy as np
 import pandas as pd
 from PIL import Image
+import os
 
 
-def get_all_images(video_name):
-    """
-    dataset 폴더 안에 있는 모든 이미지 경로를 반환하는 함수입니다.
-    """
-    images = []
-    frames = glob.glob(f'./dataset/{video_name}/frame/*')
-    for frame in frames:
-        for image in glob.glob(frame + '/*.jpg'):
-            images.append(image.replace('\\', '/'))
+def get_all_images(dataset_path):
+    images = glob.glob(os.path.join(dataset_path, '**/*.jpeg'))
     return images
 
 def _zip_person(boxes, points, gpu=True):
@@ -66,13 +60,13 @@ def generate_batch(lst, batch_size):
     for i in range(0, len(lst), batch_size):
         yield lst[i: i + batch_size]
 
-def detect_images_by_gpu(detector, video_name, batch_size=32):
+def detect_images_by_gpu(detector, dataset_path, batch_size=32):
     """
     image batch 와 gpu 를 이용해 이미지들을 분석하는 함수 입니다.
     :return df_detection(감지한
     """
-    df_detection = pd.DataFrame(columns=['frame_num', 'video_num', 'detect_person_num', 'boxes', 'landmarks'])
-    images = get_all_images(video_name)
+    df_detection = pd.DataFrame(columns=['frame_num', 'video_id', 'detect_person_num', 'boxes', 'landmarks'])
+    images = get_all_images(dataset_path)
     image_path_batches = [x for x in generate_batch(images, batch_size=batch_size)]
 
     for image_path_batch in image_path_batches:
@@ -87,36 +81,37 @@ def detect_images_by_gpu(detector, video_name, batch_size=32):
         for detected_image in list(zip(boxes,points, image_paths)): # image 별로
             boxes = detected_image[0]
             points = detected_image[1]
-            image_path = detected_image[2]
+            image_path = detected_image[2].replace('\\','/') # corresponding window path
             # 영상 번호
-            video_num = image_path.split('/')[-1][:-4]  # [:-4] -> .jpg remove
+            video_id = image_path.split('/')[-2]
             # frame 번호
-            frame_num = image_path.split('/')[-2]
+            frame_num = image_path.split('/')[-1][:-5] # [:-5] -> .jpeg remove
             people = _sort_by_x1(_zip_person(boxes,points))
 
             if len(people) > 0:
                 data = {
-                    'frame_num': int(frame_num),
-                    'video_num': int(video_num),
+                    'frame_num': frame_num,
+                    'video_id': video_id,
                     'detect_person_num': len(people),
                     'boxes': [person[0] for person in people],
                     'landmarks': [person[1] for person in people]
                 }
                 df_detection = df_detection.append(data, ignore_index=True)
-                print(f'{frame_num}번 째 frame : {video_num} 영상 이미지 저장')
+                print(f'{frame_num}번 째 frame : {video_id} 영상 이미지 저장')
     return df_detection
 
-def detect_images_by_cpu(detector, video_name):
+def detect_images_by_cpu(detector, dataset_path):
     """
     cpu 를 이용한
     """
-    df_detection = pd.DataFrame(columns=['frame_num', 'video_num', 'detect_person_num', 'boxes', 'landmarks'])
-    images = get_all_images(video_name)  # 모든 이미지 경로를 가져옵니다.
+    df_detection = pd.DataFrame(columns=['frame_num', 'video_id', 'detect_person_num', 'boxes', 'landmarks'])
+    images = get_all_images(dataset_path)  # 모든 이미지 경로를 가져옵니다.
     for image in images:
+        image = image.replace('\\', '/')
         # 영상 번호
-        video_num = image.split('/')[-1][:-4]  # [:-4] -> .jpg remove
+        video_id = image.split('/')[-2]
         # frame 번호
-        frame_num = image.split('/')[-2]
+        frame_num = image.split('/')[-1][:-5]  # [:-5] -> .jpeg remove
         # 이미지 경로 -> ndarray
         image = np.array(Image.open(image))
         # get boundary box and landmarks
@@ -126,14 +121,14 @@ def detect_images_by_cpu(detector, video_name):
         # 1명 이상인 경우 / 1명만 검출하고 싶으면 == 1 로 변경
         if len(people) > 0:
             data = {
-                'frame_num': int(frame_num),
-                'video_num': int(video_num),
+                'frame_num': frame_num,
+                'video_id': video_id,
                 'detect_person_num': len(people),
                 'boxes': [person[0] for person in people],
                 'landmarks': [person[1] for person in people]
             }
             df_detection = df_detection.append(data, ignore_index=True)
-            print(f'{frame_num}번 째 frame : {video_num} 영상 이미지 저장')
+            print(f'{frame_num}번 째 frame : {video_id} 영상 이미지 저장')
     return df_detection
 
 def filter_df(df):
@@ -147,7 +142,7 @@ def filter_df(df):
 
     # 빈 df_filtered 생성
     df_filtered = pd.DataFrame(
-        columns=['frame_num', 'video_num', 'detect_person_num', 'boxes', 'landmarks']
+        columns=['frame_num', 'video_id', 'detect_person_num', 'boxes', 'landmarks']
     ).set_index('frame_num')
 
     for frame_num in frame_index:
