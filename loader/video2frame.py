@@ -53,7 +53,7 @@ def main():
     parser.add_argument(
         'output_dir',
         nargs='?',
-        default='./extracted',
+        default='extracted',
         help='output directory',
     )
     parser.add_argument(
